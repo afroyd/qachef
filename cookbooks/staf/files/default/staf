@@ -1,0 +1,67 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          staf 
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Stuff is stuff 
+# Description:       Life is life
+### END INIT INFO
+#
+# Author:      Eyal and Eyal <life@islife.com> 
+
+shopt -s nocasematch # as to allow case insensitive regex
+
+STAF_DIR=/usr/local/staf
+if [ `uname` == "Darwin" ]
+then
+	STAF_DIR=/Library/staf
+	DYLD_LIBRARY_PATH="/usr/lib:${DYLD_LIBRARY_PATH}:/Library/staf/lib"
+	export DYLD_LIBRARY_PATH
+elif [ `uname` == "OS400" ]
+then
+	LIBPATH="${LIBPATH}:${STAF_DIR}/lib"
+	export LIBPATH
+
+	QIBM_MULTI_THREADED="Y"
+	export QIBM_MULTI_THREADED
+
+	QIBM_JAVA_PASE_STARTUP="/usr/lib/start32"
+	export QIBM_JAVA_PASE_STARTUP	
+else
+	if [[ `uname -n` =~ ^.*opensuse.*$ ]]
+	then
+		LD_LIBRARY_PATH="/usr/local/zend/lib:/usr/lib:/usr/lib64:/lib/x86_64-linux-gnu:/usr/local/staf/lib"
+	else
+		LD_LIBRARY_PATH="/lib:/usr/lib:/usr/lib64:/lib/x86_64-linux-gnu:/usr/local/zend/lib:/usr/local/staf/lib"
+	fi
+	export LD_LIBRARY_PATH
+fi
+
+STAF_BIN="${STAF_DIR}/bin"
+PATH="${STAF_BIN}:${PATH}"
+STAFCONVDIR="${STAF_DIR}/codepage"
+CLASSPATH="${STAF_DIR}/lib/JSTAF.jar:${CLASSPATH}"
+CLASSPATH="${STAF_DIR}/samples/demo/STAFDemo.jar:${CLASSPATH}"
+
+export PATH STAFCONVDIR CLASSPATH
+
+case "$1" in
+    start)
+        ${STAF_BIN}/STAFProc & 
+    ;;
+  stop)
+        staf local shutdown shutdown
+    ;;
+  force-reload|restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+    echo "Usage: pass either stop/start"
+    exit 1
+    ;;
+esac
+
+exit 0
